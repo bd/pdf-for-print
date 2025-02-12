@@ -1,42 +1,40 @@
-# Booklet Reorder
+# Quick and Dirty PDF Bookbinding Signature Creation
 
-Booklet Reorder is a command-line Python tool that rearranges PDF pages for booklet (signature) printing. It reorders pages into signatures according to a predetermined imposition scheme so that when printed double-sided and folded, the pages appear in the correct order for binding.
+`booklet_builder.py` is a command-line Python tool that rearranges PDF pages for book printing. It reorders pages into signatures according to a predetermined imposition scheme so that when printed double-sided and folded, the pages appear in the correct order for binding. This is designed to work with a Brother home laser printer, so it's nothing too sophisticated. The reordered PDF will print into foldable signatures correctly if the print settings are 2-up double sided per sheet. It _should_ scale to any paper size, but has only been tested on 8.5x11. Likewise it should work for signatures with pages in any multiple of four, but has only been tested on signatures of 8, 16, and 20 pages (2, 4, and 5 printed sheets, respectively). 
 
-For example, for an 8-page signature the mapping is as follows:
+## Terminology and Workflow
 
-| **Output (I<n>)** | **Imposition Label** | **Source Page** |
-|-------------------|----------------------|-----------------|
-| I1                | S1FL                 | Source P8       |
-| I2                | S1FR                 | Source P1       |
-| I3                | S1BR                 | Source P7       |
-| I4                | S1BL                 | Source P2       |
-| I5                | S2FL                 | Source P6       |
-| I6                | S2FR                 | Source P3       |
-| I7                | S2BR                 | Source P5       |
-| I8                | S2BL                 | Source P4       |
+### Terms:
+- Source: the PDF you want to print
+- Output: the PDF you have reordered for printing
+- Page: a single source page in the PDF. Not to be confused with a "Sheet". There will be 4 pages per Sheet, and N Sheets per Signature
+- Signature: bookbinding term for the collection of Sheets which will be folded and bound into a book. There will typically be multiple signatures per book. Otherwise it's just a booklet
+- Imposition: the new ordering of Pages
+- Sheet: a single printed page. It will contain 4 pages and be folded in half along with _N - 1_ other sheets to produce a signature. Not to be confused with a Page. 
+  
+### Workflow: 
+1. Run the script on your PDF. Setting the signature size too high will make folding unwieldy, while setting it too low will make binding a bit more work. 
+2. Print a test: print 1 Signature from the Output. In my printer, this means printing pages from 1 to N where N is the number of pages per signature.
+  a. Settings should be 2-up Double Sided, meaning you will have 4 Pages per Sheet.
+  b. The flow should be Left-to-right, top-to-bottom, with Auto-rotate on. Other flows will not work right. I guess I could support them, but there's not much
+reason for that now.
+  c. fold the signature and confirm the page ordering and orientation.
+4. Print the full Output.  
+5. Count out the sheets into Signatures, i.e. number of Pages per signature divided by 4. Maintain the order as you do!
+6. Fold each Signature in half, maintaining order.
+7. Stack and bind Signatures. For my purposes, it's usually enough to use binder clips. Much beyond that and we should start using real typsetting technology.
 
-This ordering is generalized for a signature of _N_ pages (where _N_ is a multiple of 4). In each sheet (0-indexed, with sheet label S{i+1}), the pages are arranged as:  
-- **Front Left (FL)** = `sig_pages[N – 1 – 2*i]`  
-- **Front Right (FR)** = `sig_pages[2*i]`  
-- **Back Right (BR)** = `sig_pages[N – 2 – 2*i]`  
-- **Back Left (BL)** = `sig_pages[2*i + 1]`  
-
-The output order per sheet is `[FL, FR, BR, BL]`.
-
-By default, the tool rotates the back pages (BR and BL) 180° so that their orientation is correct for double-sided printing. An optional overlay can be applied that labels each imposed page with its signature and output page number.
-
----
 
 ## Features
 
 - **Customizable Signatures:**  
-  Specify the number of pages per signature (default is 20, must be a multiple of 4).
+  Specify the number of pages per signature (default is 20, must be a multiple of 4). So, for example, 20 pages per signature means 5 sheets per signature (20/4 == 5). 
 
 - **Rotation Control:**  
-  By default, back pages are rotated 180° to correct orientation. This can be disabled.
+  By default, back pages are rotated 180° to correct orientation. This can be disabled. My setup requires this with the Auto-rotate print setting. It hasn't been tested _without_ that setting. 
 
 - **Optional Imposition Overlay:**  
-  Optionally overlay each page with its imposition label and global output page number.
+  Optionally overlay each page with its imposition label and global output page number for debugging and sorting.
 
 - **Simple Command-Line Interface:**  
   Reorder your PDF with a single command.
@@ -65,7 +63,7 @@ By default, the tool rotates the back pages (BR and BL) 180° so that their orie
 
 3. **Install the Dependencies:**
 
-       pip install PyPDF2==3.0.1 reportlab==4.3.0
+       pip install -r requirements.txt
 
 ---
 
@@ -124,27 +122,13 @@ The tool generalizes this ordering for signatures with any number of pages (mult
 
 ---
 
-## Limitations
-
-- This version of the script applies the same transformation (the front–left transformation) to every imposed page. In a future revision, you may implement different transformations for the FR, BR, and BL positions.
-- The script assumes that the input and output page counts are the same.
-
----
-
 ## License
 
-This project is licensed under the MIT License. See the LICENSE file for details.
+None. No Warranty. Use at your own risk.
 
 ---
 
 ## Contributing
 
-Contributions are welcome! Please open an issue or submit a pull request with your improvements.
+Contributions are welcome, I suppose. Open an issue or submit a pull request with your improvements. I would be shocked if you did...
 
----
-
-## Contact
-
-For questions or feedback, please contact [Your Name](mailto:your.email@example.com).
-
-Enjoy your booklet printing!
